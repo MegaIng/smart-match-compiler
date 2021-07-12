@@ -1,118 +1,116 @@
- 16           0 LOAD_FAST                0 (command)
-              2 LOAD_METHOD              0 (split)
-              4 CALL_METHOD              0
+ 25           0 LOAD_FAST                0 (command)
+              2 POP_JUMP_IF_FALSE        6 (to 12)
+              4 LOAD_FAST                0 (command)
+              6 LOAD_METHOD              0 (split)
+              8 CALL_METHOD              0
+             10 JUMP_FORWARD             1 (to 14)
+        >>   12 LOAD_CONST               1 ('default')
 
- 17           6 DUP_TOP
-              8 DUP_TOP
-             10 MATCH_SEQUENCE
-             12 POP_JUMP_IF_FALSE       16 (to 32)
-             14 GET_LEN
-             16 LOAD_CONST               1 (1)
-             18 COMPARE_OP               2 (==)
-             20 POP_JUMP_IF_FALSE       16 (to 32)
-             22 UNPACK_SEQUENCE          1
-             24 LOAD_CONST               2 ('north')
+ 26     >>   14 DUP_TOP
+             16 DUP_TOP
+             18 MATCH_SEQUENCE
+             20 POP_JUMP_IF_FALSE       20 (to 40)
+             22 GET_LEN
+             24 LOAD_CONST               2 (1)
              26 COMPARE_OP               2 (==)
-             28 POP_JUMP_IF_FALSE       17 (to 34)
-             30 JUMP_FORWARD            19 (to 70)
-        >>   32 POP_TOP
-        >>   34 DUP_TOP
-             36 MATCH_SEQUENCE
-             38 POP_JUMP_IF_FALSE       32 (to 64)
-             40 GET_LEN
-             42 LOAD_CONST               3 (2)
-             44 COMPARE_OP               2 (==)
-             46 POP_JUMP_IF_FALSE       32 (to 64)
-             48 UNPACK_SEQUENCE          2
-             50 LOAD_CONST               4 ('go')
+             28 POP_JUMP_IF_FALSE       20 (to 40)
+             30 UNPACK_SEQUENCE          1
+             32 LOAD_CONST               3 ('north')
+             34 COMPARE_OP               2 (==)
+             36 POP_JUMP_IF_FALSE       21 (to 42)
+             38 JUMP_FORWARD            19 (to 78)
+        >>   40 POP_TOP
+        >>   42 DUP_TOP
+             44 MATCH_SEQUENCE
+             46 POP_JUMP_IF_FALSE       36 (to 72)
+             48 GET_LEN
+             50 LOAD_CONST               4 (2)
              52 COMPARE_OP               2 (==)
-             54 POP_JUMP_IF_FALSE       32 (to 64)
-             56 LOAD_CONST               2 ('north')
-             58 COMPARE_OP               2 (==)
-             60 POP_JUMP_IF_FALSE       33 (to 66)
-             62 JUMP_FORWARD             3 (to 70)
-        >>   64 POP_TOP
-        >>   66 POP_TOP
-             68 JUMP_FORWARD            10 (to 90)
-        >>   70 POP_TOP
-             72 POP_TOP
-
- 18          74 LOAD_GLOBAL              1 (print)
-             76 LOAD_CONST               2 ('north')
-             78 CALL_FUNCTION            1
+             54 POP_JUMP_IF_FALSE       36 (to 72)
+             56 UNPACK_SEQUENCE          2
+             58 LOAD_CONST               5 ('go')
+             60 COMPARE_OP               2 (==)
+             62 POP_JUMP_IF_FALSE       36 (to 72)
+             64 LOAD_CONST               3 ('north')
+             66 COMPARE_OP               2 (==)
+             68 POP_JUMP_IF_FALSE       37 (to 74)
+             70 JUMP_FORWARD             3 (to 78)
+        >>   72 POP_TOP
+        >>   74 POP_TOP
+             76 JUMP_FORWARD             8 (to 94)
+        >>   78 POP_TOP
              80 POP_TOP
 
- 21          82 LOAD_GLOBAL              2 (match_command)
-             84 LOAD_FAST                0 (command)
+ 27          82 LOAD_GLOBAL              1 (print)
+             84 LOAD_CONST               3 ('north')
              86 CALL_FUNCTION            1
-             88 RETURN_VALUE
+             88 POP_TOP
 
- 19     >>   90 DUP_TOP
-             92 MATCH_SEQUENCE
-             94 POP_JUMP_IF_FALSE       57 (to 114)
-             96 GET_LEN
-             98 LOAD_CONST               3 (2)
-            100 COMPARE_OP               2 (==)
-            102 POP_JUMP_IF_FALSE       57 (to 114)
-            104 UNPACK_SEQUENCE          2
-            106 LOAD_CONST               5 ('get')
-            108 COMPARE_OP               2 (==)
-            110 POP_JUMP_IF_FALSE       57 (to 114)
-            112 JUMP_FORWARD            41 (to 196)
-        >>  114 POP_TOP
-            116 DUP_TOP
-            118 MATCH_SEQUENCE
-            120 POP_JUMP_IF_FALSE       74 (to 148)
-            122 GET_LEN
-            124 LOAD_CONST               6 (3)
-            126 COMPARE_OP               2 (==)
-            128 POP_JUMP_IF_FALSE       74 (to 148)
-            130 UNPACK_SEQUENCE          3
-            132 LOAD_CONST               7 ('pick')
-            134 COMPARE_OP               2 (==)
-            136 POP_JUMP_IF_FALSE       73 (to 146)
-            138 LOAD_CONST               8 ('up')
-            140 COMPARE_OP               2 (==)
-            142 POP_JUMP_IF_FALSE       74 (to 148)
-            144 JUMP_FORWARD            25 (to 196)
-        >>  146 POP_TOP
-        >>  148 POP_TOP
-            150 DUP_TOP
-            152 MATCH_SEQUENCE
-            154 POP_JUMP_IF_FALSE       92 (to 184)
-            156 GET_LEN
-            158 LOAD_CONST               6 (3)
-            160 COMPARE_OP               2 (==)
-            162 POP_JUMP_IF_FALSE       92 (to 184)
-            164 UNPACK_SEQUENCE          3
-            166 LOAD_CONST               7 ('pick')
-            168 COMPARE_OP               2 (==)
-            170 POP_JUMP_IF_FALSE       91 (to 182)
-            172 ROT_TWO
-            174 LOAD_CONST               8 ('up')
-            176 COMPARE_OP               2 (==)
-            178 POP_JUMP_IF_FALSE       92 (to 184)
-            180 JUMP_FORWARD             7 (to 196)
-        >>  182 POP_TOP
-        >>  184 POP_TOP
-            186 POP_TOP
+ 30          90 LOAD_CONST               0 (None)
+             92 RETURN_VALUE
 
- 21         188 LOAD_GLOBAL              2 (match_command)
-            190 LOAD_FAST                0 (command)
-            192 CALL_FUNCTION            1
+ 28     >>   94 DUP_TOP
+             96 MATCH_SEQUENCE
+             98 POP_JUMP_IF_FALSE       59 (to 118)
+            100 GET_LEN
+            102 LOAD_CONST               4 (2)
+            104 COMPARE_OP               2 (==)
+            106 POP_JUMP_IF_FALSE       59 (to 118)
+            108 UNPACK_SEQUENCE          2
+            110 LOAD_CONST               6 ('get')
+            112 COMPARE_OP               2 (==)
+            114 POP_JUMP_IF_FALSE       59 (to 118)
+            116 JUMP_FORWARD            39 (to 196)
+        >>  118 POP_TOP
+            120 DUP_TOP
+            122 MATCH_SEQUENCE
+            124 POP_JUMP_IF_FALSE       76 (to 152)
+            126 GET_LEN
+            128 LOAD_CONST               7 (3)
+            130 COMPARE_OP               2 (==)
+            132 POP_JUMP_IF_FALSE       76 (to 152)
+            134 UNPACK_SEQUENCE          3
+            136 LOAD_CONST               8 ('pick')
+            138 COMPARE_OP               2 (==)
+            140 POP_JUMP_IF_FALSE       75 (to 150)
+            142 LOAD_CONST               9 ('up')
+            144 COMPARE_OP               2 (==)
+            146 POP_JUMP_IF_FALSE       76 (to 152)
+            148 JUMP_FORWARD            23 (to 196)
+        >>  150 POP_TOP
+        >>  152 POP_TOP
+            154 DUP_TOP
+            156 MATCH_SEQUENCE
+            158 POP_JUMP_IF_FALSE       94 (to 188)
+            160 GET_LEN
+            162 LOAD_CONST               7 (3)
+            164 COMPARE_OP               2 (==)
+            166 POP_JUMP_IF_FALSE       94 (to 188)
+            168 UNPACK_SEQUENCE          3
+            170 LOAD_CONST               8 ('pick')
+            172 COMPARE_OP               2 (==)
+            174 POP_JUMP_IF_FALSE       93 (to 186)
+            176 ROT_TWO
+            178 LOAD_CONST               9 ('up')
+            180 COMPARE_OP               2 (==)
+            182 POP_JUMP_IF_FALSE       94 (to 188)
+            184 JUMP_FORWARD             5 (to 196)
+        >>  186 POP_TOP
+        >>  188 POP_TOP
+            190 POP_TOP
+
+ 30         192 LOAD_CONST               0 (None)
             194 RETURN_VALUE
 
- 19     >>  196 ROT_TWO
+ 28     >>  196 ROT_TWO
             198 POP_TOP
             200 STORE_FAST               1 (obj)
 
- 20         202 LOAD_GLOBAL              1 (print)
-            204 LOAD_CONST               9 ('pick up')
+ 29         202 LOAD_GLOBAL              1 (print)
+            204 LOAD_CONST              10 ('pick up')
             206 LOAD_FAST                1 (obj)
             208 CALL_FUNCTION            2
             210 POP_TOP
 
- 21         212 LOAD_GLOBAL              2 (match_command)
-            214 LOAD_FAST                0 (command)
-            216 CALL_FUNCTION            1
-            218 RETURN_VALUE
+ 30         212 LOAD_CONST               0 (None)
+            214 RETURN_VALUE

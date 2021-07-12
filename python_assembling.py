@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from collections import defaultdict, Counter
 from dataclasses import dataclass, field
-from dis import Instruction, opmap, opname, get_instructions
-from opcode import EXTENDED_ARG, hasjabs, hasjrel, HAVE_ARGUMENT, hasconst, hasname, hasfree, hascompare, cmp_op, haslocal, stack_effect
+from dis import Instruction, opmap, opname as opname_map, get_instructions
+from opcode import EXTENDED_ARG, hasjabs, hasjrel, HAVE_ARGUMENT, hasconst, hasname, hasfree, hascompare, cmp_op, \
+    haslocal, stack_effect
 from types import CodeType
 from typing import Iterable, Any, Optional, Collection, Container
 
@@ -34,7 +35,7 @@ class ExtendedInstruction:
 
     @opcode.setter
     def opcode(self, value):
-        opn = opname[value]
+        opn = opname_map[value]
         self.ins = self.ins._replace(opname=opn, opcode=value)
 
     @property
@@ -203,6 +204,35 @@ class CodeInfo:
         )
 
 
+def ins(op: str | int, /, *, arg=None, starts_line=None):
+    if isinstance(op, int):
+        opcode = op
+        opname = opname_map[op]
+    else:
+        opname = op
+        opcode = opmap[op]
+    if opcode > HAVE_ARGUMENT and arg is None:
+        arg = 0
+    return Instruction()
+
+
+def _build_unconditional_jump(code_info, current, target, starts_line=None) -> ExtendedInstruction:
+    if current > target:
+        eins = ExtendedInstruction(
+            code_info,
+            ins('JUMP_ABSOLUTE', starts_line=starts_line)
+        )
+        eins.arg = target
+        return eins
+    else:
+        eins = ExtendedInstruction(
+            code_info,
+            ins('JUMP_FORWARD', starts_line=starts_line)
+        )
+        eins.arg = target - current
+        return eins
+
+
 @dataclass(eq=False)
 class BasicBlock:
     code_info: CodeInfo
@@ -222,11 +252,18 @@ class BasicBlock:
         if self.jump_instruction is None:
             assert self.jump_target is None
             return
+        full_target = target_offset // 2 + self.jump_target[1]
+        full_current = current_offset // 2
+        if self.jump_instruction.opcode in unconditional_jump:
+            if full_target <= full_current:
+                self.jump_instruction.opname = 'JUMP_ABSOLUTE'
+            else:
+                self.jump_instruction.opname = 'JUMP_FORWARD'
         if self.jump_instruction.opcode in hasjabs:
-            self.jump_instruction.arg = target_offset // 2 + self.jump_target[1]
+            self.jump_instruction.arg = full_target
         else:
             assert self.jump_instruction.opcode in hasjrel, self.jump_instruction
-            self.jump_instruction.arg = (target_offset - current_offset) // 2 + self.jump_target[1] - 1
+            self.jump_instruction.arg = full_target - full_current - 1
         yield from self.jump_instruction.raw_instructions
 
     def summary(self):
@@ -238,13 +275,23 @@ class BasicBlock:
         # w = max(map(len, out))
         return f"<line {self.line}>\n" + "\n".join(out)
 
+    def equiv(self, other: BasicBlock):
+        """
+        Checks if the two blocks are equivalent. This is not implement in __eq__ for a number of reasons:
+
+        - It is slow
+        - Just because they are equal does not mean they are interchangeable (especially in dicts)
+        - It is required to update predecessors
+        
+        """
+
 
 @dataclass(eq=False)
 class BlockGraph:
     code_info: CodeInfo
     entry_block: BasicBlock
     blocks: list[BasicBlock]
-    
+
     def find_lines(self, lines: Container[int]) -> list[BasicBlock]:
         return [b for b in self.blocks if b.line in lines]
 
@@ -258,7 +305,7 @@ class BlockGraph:
             if b.jump_target is not None and b.jump_target[0] is block:
                 jumps.append(b)
         return direct, jumps
-    
+
     def outgoing(self, blocks: list[BasicBlock]) -> tuple[list[BasicBlock], list[BasicBlock]]:
         direct = []
         jumps = []
@@ -305,12 +352,18 @@ class BlockGraph:
         assert set(new_order) == set(self.blocks)
         self.blocks = new_order
 
-    def to_pydot(self):
+    def to_pydot(self, colors: dict[BasicBlock, str] = None):
         import pydot
+        colors = colors or {}
+
         graph = pydot.Dot(graph_type='digraph', labelloc="l")
-        nodes = {}
         for block in self.blocks:
-            graph.add_node(pydot.Node(hex(id(block)), label=block.summary().replace("\n", "\\l") + "\\l"))
+            graph.add_node(pydot.Node(
+                hex(id(block)),
+                label=block.summary().replace("\n", "\\l") + "\\l",
+                fillcolor=colors.get(block, "white"),
+                style="filled"
+            ))
             if block.next is not None:
                 graph.add_edge(pydot.Edge(hex(id(block)), hex(id(block.next)), label="next"))
             if block.jump_target is not None:
@@ -349,11 +402,13 @@ class BlockGraph:
                 instructions.extend(raw)
         return self.code_info.built(instructions)
 
+    # def deduplicate(self):
+
 
 exit_function = ['RERAISE', 'RETURN_VALUE', 'RAISE_VARARGS']
 exit_function = [opmap[n] for n in exit_function]
-unconditional = ['JUMP_FORWARD', 'JUMP_ABSOLUTE']
-unconditional = [opmap[n] for n in unconditional]
+unconditional_jump = ['JUMP_FORWARD', 'JUMP_ABSOLUTE']
+unconditional_jump = [opmap[n] for n in unconditional_jump]
 
 
 def disassemble(code: CodeType) -> BlockGraph:
@@ -398,7 +453,7 @@ def disassemble(code: CodeType) -> BlockGraph:
                     missing_targets[ins.argval].append(current)
                 else:
                     current.jump_target = targets[ins.argval]
-                if ins.opcode not in unconditional:
+                if ins.opcode not in unconditional_jump:
                     prev = current
                 current = None
             elif ins.opcode in exit_function:
