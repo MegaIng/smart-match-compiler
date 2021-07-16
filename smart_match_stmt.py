@@ -5,7 +5,7 @@ from inspect import getsource, getsourcelines
 from itertools import dropwhile
 from types import FunctionType
 
-from python_assembling import disassemble, BasicBlock, BlockGraph
+from python_assembling import disassemble, BasicBlock, BasicBlockGraph
 
 RAW_COLORS = "%23332288-%23117733-%2344AA99-%2388CCEE-%23DDCC77-%23CC6677-%23AA4499-%23882255"
 
@@ -16,7 +16,7 @@ RGB_COLORS = [(int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16))
 
 
 class MatchDecompiler(ast.NodeVisitor):
-    def __init__(self, blocks: BlockGraph):
+    def __init__(self, blocks: BasicBlockGraph):
         self.blocks = blocks
         self.inside_match = False
         self.branches = None

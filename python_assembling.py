@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from collections import defaultdict, Counter
 from dataclasses import dataclass, field
 from dis import Instruction, opmap, opname as opname_map, get_instructions
@@ -94,6 +95,9 @@ class ExtendedInstruction:
         #     s = f"       {s}"
         return s
 
+@dataclass(eq=False)
+class JumpInstruction(ExtendedInstruction):
+    target: Label = None
 
 def _to_bytes(instructions: list[Instruction], firstline: int) -> tuple[bytes, bytes]:
     code = bytearray()
@@ -213,35 +217,24 @@ def ins(op: str | int, /, *, arg=None, starts_line=None):
         opcode = opmap[op]
     if opcode > HAVE_ARGUMENT and arg is None:
         arg = 0
-    return Instruction()
+    return Instruction(opname, opcode, arg, None, None, None, starts_line, None)
 
 
-def _build_unconditional_jump(code_info, current, target, starts_line=None) -> ExtendedInstruction:
-    if current > target:
-        eins = ExtendedInstruction(
-            code_info,
-            ins('JUMP_ABSOLUTE', starts_line=starts_line)
-        )
-        eins.arg = target
-        return eins
-    else:
-        eins = ExtendedInstruction(
-            code_info,
-            ins('JUMP_FORWARD', starts_line=starts_line)
-        )
-        eins.arg = target - current
-        return eins
+class Label(ABC):
+    pass
 
+class Block(ABC):
+    def instructions(self) -> tuple[ExtendedInstruction]:
 
-@dataclass(eq=False)
-class BasicBlock:
+@dataclass(eq=False, repr=False)
+class BasicBlock(Label, Block):
     code_info: CodeInfo
     line: int = None
     instructions: list[ExtendedInstruction] = field(default_factory=list)
-    jump_instruction: ExtendedInstruction = None
+    jump_instruction: JumpInstruction = None
 
-    jump_target: tuple[BasicBlock, int] = None
-    next: BasicBlock = None
+    jump_target: Label = None
+    next: Label = None
 
     def raw_instructions(self, start_offset: int, target_offset: int) -> Iterable[Instruction]:
         current_offset = start_offset
@@ -282,12 +275,42 @@ class BasicBlock:
         - It is slow
         - Just because they are equal does not mean they are interchangeable (especially in dicts)
         - It is required to update predecessors
-        
         """
 
 
-@dataclass(eq=False)
-class BlockGraph:
+@dataclass
+class BasicBlockOffset(Label):
+    block: BasicBlock
+    index: int
+
+
+
+@dataclass(eq=False, repr=False)
+class MetaBlock(Block):
+    code_info: CodeInfo
+    blocks: list[BasicBlock]
+    entry_points: dict[str, Label]
+    exit_points: dict[str, Label]
+
+    def validate(self):
+        for b in self.blocks:
+            if b.next is not None:
+                if b.next not in self.blocks:
+                    assert b.next in self.exit_points.values(), b.next
+            if b.jump_target is not None:
+                if b.jump_target not in self.blocks:
+                    assert b.jump_target in self.exit_points.values(), b.jump_target.summary()
+
+
+@dataclass
+class MetaBlockEntry(Label):
+    block: MetaBlock
+    name: str
+    offset: int = 0
+
+
+@dataclass(eq=False, repr=False)
+class BasicBlockGraph:
     code_info: CodeInfo
     entry_block: BasicBlock
     blocks: list[BasicBlock]
@@ -404,6 +427,8 @@ class BlockGraph:
 
     # def deduplicate(self):
 
+@dataclass(eq=False, repr=False)
+class Assembler:
 
 exit_function = ['RERAISE', 'RETURN_VALUE', 'RAISE_VARARGS']
 exit_function = [opmap[n] for n in exit_function]
@@ -411,7 +436,7 @@ unconditional_jump = ['JUMP_FORWARD', 'JUMP_ABSOLUTE']
 unconditional_jump = [opmap[n] for n in unconditional_jump]
 
 
-def disassemble(code: CodeType) -> BlockGraph:
+def disassemble(code: CodeType) -> BasicBlockGraph:
     code_info = CodeInfo.from_code(code)
     blocks = {}
     block_start = 0
@@ -462,4 +487,4 @@ def disassemble(code: CodeType) -> BlockGraph:
             else:
                 current.instructions.append(eins)
 
-    return BlockGraph(code_info, blocks[0], list(blocks.values()))
+    return BasicBlockGraph(code_info, blocks[0], list(blocks.values()))
